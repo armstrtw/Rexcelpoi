@@ -1,0 +1,4 @@
+## R discovers Java libs for us if your install is done correctly
+
+PKG_CPPFLAGS=$(JAVA_CPPFLAGS)
+PKG_LIBS=$(JAVA_LIBS)
