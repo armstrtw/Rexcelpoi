@@ -22,21 +22,20 @@ extern "C" {
 
   SEXP R2xls(SEXP r_object,
              SEXP filename,
-             SEXP worksheetName,
-             SEXP formats);
+             SEXP workbookName);
 }
 
-bool writeWB_from_List(SEXP r_object, const char* fname,SEXP formats);
-bool writeWB_from_Dataframe(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats);
-bool writeWB_from_Matrix(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats);
-bool writeWB_from_Vector(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats);
-bool writeWB_from_Rseries(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats);
+bool writeWB_from_List(SEXP r_object, const char* fname);
+bool writeWB_from_Dataframe(SEXP r_object, const char* fname, const char* workbookName);
+bool writeWB_from_Matrix(SEXP r_object, const char* fname, const char* workbookName);
+bool writeWB_from_Vector(SEXP r_object, const char* fname, const char* workbookName);
+bool writeWB_from_Rseries(SEXP r_object, const char* fname, const char* workbookName);
 
-int writeSHEET_from_List(jobject wb, jobject ws, int startrow, SEXP r_object, SEXP formats);
-int writeSHEET_from_Dataframe(jobject wb, jobject ws, int startrow, SEXP r_object, SEXP formats, bool freeze_panes);
-int writeSHEET_from_Matrix(jobject wb, jobject ws,  int startrow, SEXP r_object, SEXP formats, bool freeze_panes);
-int writeSHEET_from_Vector(jobject wb, jobject ws, int startrow, SEXP r_object, SEXP formats, bool freeze_panes);
-int writeSHEET_from_Rseries(jobject wb, jobject ws, int startrow, SEXP r_object, SEXP formats, bool freeze_panes);
+int writeSHEET_from_List(jobject wb, jobject ws, int startrow, SEXP r_object);
+int writeSHEET_from_Dataframe(jobject wb, jobject ws, int startrow, SEXP r_object, bool freeze_panes);
+int writeSHEET_from_Matrix(jobject wb, jobject ws,  int startrow, SEXP r_object, bool freeze_panes);
+int writeSHEET_from_Vector(jobject wb, jobject ws, int startrow, SEXP r_object, bool freeze_panes);
+int writeSHEET_from_Rseries(jobject wb, jobject ws, int startrow, SEXP r_object, bool freeze_panes);
 
 bool do_output(const char* fname, jobject wb);
 jobject makeWorkbook();

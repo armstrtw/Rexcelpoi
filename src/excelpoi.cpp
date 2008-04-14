@@ -81,7 +81,7 @@ static jmethodID closeFileOutputStream;
 static jmethodID openFileInputStream;
 static jmethodID closeFileInputStream;
 
-// the names of these functions must match 
+// the names of these functions must match
 // the name of the dll: excelpoi.o or .dll
 // do not change them lightly b/c then JNI_init
 // will not be called (I learned the hard way)
@@ -115,7 +115,7 @@ int JNI_init() {
 
   // java args
   string cp1("-Djava.class.path=");
-  string cp2(getenv("CLASSPATH")); 
+  string cp2(getenv("CLASSPATH"));
 
   jArgs.push_back(cp1+cp2);
 
@@ -136,12 +136,12 @@ int JNI_init() {
     cls_WorkBook= java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFWorkbook");
     cls_WorkSheet= java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFSheet");
     cls_Row= java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFRow");
-    cls_Cell= java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFCell");		
+    cls_Cell= java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFCell");
 
     cls_CellStyle = java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFCellStyle");
     cls_DataFormat = java_poi_env->FindClass("org/apache/poi/hssf/usermodel/HSSFDataFormat");
 
-    cls_POIFileSystem= java_poi_env->FindClass("org/apache/poi/poifs/filesystem/POIFSFileSystem");		
+    cls_POIFileSystem= java_poi_env->FindClass("org/apache/poi/poifs/filesystem/POIFSFileSystem");
     cls_FileOutputStream = java_poi_env->FindClass("java/io/FileOutputStream");
     cls_FileInputStream = java_poi_env->FindClass("java/io/FileInputStream");
 
@@ -160,7 +160,7 @@ int JNI_init() {
 
     createDataFormat = java_poi_env->GetMethodID(cls_WorkBook,"createDataFormat","()Lorg/apache/poi/hssf/usermodel/HSSFDataFormat;");
     createCellStyle  = java_poi_env->GetMethodID(cls_WorkBook,"createCellStyle","()Lorg/apache/poi/hssf/usermodel/HSSFCellStyle;");
-		
+
     // sheet methods
     createFreezePane = java_poi_env->GetMethodID(cls_WorkSheet,"createFreezePane","(II)V");
     createRow = java_poi_env->GetMethodID(cls_WorkSheet,"createRow","(I)Lorg/apache/poi/hssf/usermodel/HSSFRow;");
@@ -196,7 +196,7 @@ int JNI_init() {
     setDataFormat = java_poi_env->GetMethodID(cls_CellStyle,"setDataFormat","(S)V");
     setAlignment = java_poi_env->GetMethodID(cls_CellStyle,"setAlignment","(S)V");
 
-    // data format 
+    // data format
     getFormat = java_poi_env->GetMethodID(cls_DataFormat,"getFormat","(Ljava/lang/String;)S");
     getBuiltinFormat = java_poi_env->GetStaticMethodID(cls_DataFormat,"getBuiltinFormat","(Ljava/lang/String;)S");
 
@@ -252,7 +252,7 @@ void writeCase(jobject cell, SEXP r_data, int index) {
   switch(TYPEOF(r_data)) {
   case REALSXP:
     if(isPOSIXct(r_data)) {
-      double excelDate = round((REAL(r_data)[index] - epoch)/86400) + 2.0;      
+      double excelDate = round((REAL(r_data)[index] - epoch)/86400) + 2.0;
       writeCell(cell,excelDate);
     } else {
       writeCell(cell,REAL(r_data)[index]);
@@ -287,7 +287,7 @@ jobject createExcelSheet(jobject wb, const char* sheetName) {
   // make a new sheet on the workbook
   jobject sheet = java_poi_env->CallObjectMethod(wb,createSheet,jworksheetName);
   java_poi_env->DeleteLocalRef(jworksheetName);
-	
+
   if(!sheet) {
     Rprintf("createExcelSheet: failed to create sheet.\n");
   }
@@ -315,7 +315,7 @@ jobject createStyle(jobject wb, const char* fmt, int alignRight) {
   short data_fmt_code;
 
   style = NULL;
-  
+
   if(fmt==NULL || strlen(fmt)==0) {
     return style;
   }
@@ -348,9 +348,8 @@ jobject createStyle(jobject wb, const char* fmt, int alignRight) {
 
 SEXP R2xls(SEXP r_object,
 	   SEXP filename,
-	   SEXP worksheetName,
-	   SEXP formats)
-{ 	
+	   SEXP workbookName)
+{
   jstring jfilename;
   jobject sheet;
   bool check;
@@ -371,19 +370,19 @@ SEXP R2xls(SEXP r_object,
   }
 
   const char* fname = CHAR(STRING_ELT(filename,0));
-  const char* sheetName = CHAR(STRING_ELT(worksheetName,0));
+  const char* sheetName = CHAR(STRING_ELT(workbookName,0));
 
   // write sheet based on object type
   if(isTS(r_object)) {
-    check = writeWB_from_Rseries(r_object,fname,sheetName,formats);
+    check = writeWB_from_Rseries(r_object,fname,sheetName);
   } else if(isFrame(r_object)) {
-    check = writeWB_from_Dataframe(r_object,fname,sheetName,formats);
+    check = writeWB_from_Dataframe(r_object,fname,sheetName);
   } else if(isNewList(r_object)) {
-    check = writeWB_from_List(r_object,fname,formats);
+    check = writeWB_from_List(r_object,fname);
   } else if(isMatrix(r_object)) {
-    check = writeWB_from_Matrix(r_object,fname,sheetName,formats);
+    check = writeWB_from_Matrix(r_object,fname,sheetName);
   } else if(isVector(r_object)) {
-    check = writeWB_from_Vector(r_object,fname,sheetName,formats);
+    check = writeWB_from_Vector(r_object,fname,sheetName);
   }
 
   if(check) {
@@ -393,7 +392,7 @@ SEXP R2xls(SEXP r_object,
   return ans;
 }
 
-bool writeWB_from_List(SEXP r_object, const char* fname,SEXP formats) {
+bool writeWB_from_List(SEXP r_object, const char* fname) {
   SEXP this_element, this_format;
   jobject wb, ws;
   int check;
@@ -412,25 +411,19 @@ bool writeWB_from_List(SEXP r_object, const char* fname,SEXP formats) {
 
     this_element = VECTOR_ELT(r_object,i);
 
-    if(formats!=R_NilValue && isNewList(formats)) {
-      this_format =  VECTOR_ELT(formats, i%length(formats) );
-    } else {
-      this_format = formats;
-    }
-
     ws = createExcelSheet(wb, nms[i].c_str());
 
     // write sheet based on object type
     if(isTS(this_element)) {
-      check = writeSHEET_from_Rseries(wb,ws,0,this_element,this_format,true);
+      check = writeSHEET_from_Rseries(wb,ws,0,this_element,true);
     } else if(isFrame(this_element)) {
-      check = writeSHEET_from_Dataframe(wb,ws,0,this_element,this_format,true);
+      check = writeSHEET_from_Dataframe(wb,ws,0,this_element,true);
     } else if(isNewList(this_element)) {
-      check = writeSHEET_from_List(wb,ws,0,this_element,this_format);
+      check = writeSHEET_from_List(wb,ws,0,this_element);
     } else if(isMatrix(this_element)) {
-      check = writeSHEET_from_Matrix(wb,ws,0,this_element,this_format,true);
+      check = writeSHEET_from_Matrix(wb,ws,0,this_element,true);
     } else if(isVector(this_element)) {
-      check = writeSHEET_from_Vector(wb,ws,0,this_element,this_format,true);
+      check = writeSHEET_from_Vector(wb,ws,0,this_element,true);
     }
     java_poi_env->DeleteLocalRef(ws);
     // if there was a problem w/ a sheet
@@ -451,12 +444,12 @@ bool writeWB_from_List(SEXP r_object, const char* fname,SEXP formats) {
 
 
 
-bool writeWB_from_Dataframe(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats) {
+bool writeWB_from_Dataframe(SEXP r_object, const char* fname, const char* worksheetName) {
 
   jobject wb = makeWorkbook();
   jobject ws = createExcelSheet(wb, worksheetName);
-  if(!writeSHEET_from_Dataframe(wb,ws,0,r_object,formats,true)) {
-    java_poi_env->DeleteLocalRef(ws);  
+  if(!writeSHEET_from_Dataframe(wb,ws,0,r_object,true)) {
+    java_poi_env->DeleteLocalRef(ws);
     java_poi_env->DeleteLocalRef(wb);
     return false;
   }
@@ -472,11 +465,11 @@ bool writeWB_from_Dataframe(SEXP r_object, const char* fname, const char* worksh
 
 }
 
-bool writeWB_from_Matrix(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats) {
+bool writeWB_from_Matrix(SEXP r_object, const char* fname, const char* worksheetName) {
 
   jobject wb = makeWorkbook();
   jobject ws = createExcelSheet(wb, worksheetName);
-  if(!writeSHEET_from_Matrix(wb,ws,0,r_object,formats,true)) {
+  if(!writeSHEET_from_Matrix(wb,ws,0,r_object,true)) {
     java_poi_env->DeleteLocalRef(ws);
     java_poi_env->DeleteLocalRef(wb);
     return false;
@@ -492,11 +485,11 @@ bool writeWB_from_Matrix(SEXP r_object, const char* fname, const char* worksheet
   return true;
 }
 
-bool writeWB_from_Rseries(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats) {
+bool writeWB_from_Rseries(SEXP r_object, const char* fname, const char* worksheetName) {
 
   jobject wb = makeWorkbook();
   jobject ws = createExcelSheet(wb, worksheetName);
-  if(!writeSHEET_from_Rseries(wb,ws,0,r_object,formats,true)) {
+  if(!writeSHEET_from_Rseries(wb,ws,0,r_object,true)) {
     java_poi_env->DeleteLocalRef(ws);
     java_poi_env->DeleteLocalRef(wb);
     return false;
@@ -512,11 +505,11 @@ bool writeWB_from_Rseries(SEXP r_object, const char* fname, const char* workshee
   return true;
 }
 
-bool writeWB_from_Vector(SEXP r_object, const char* fname, const char* worksheetName, SEXP formats) {
+bool writeWB_from_Vector(SEXP r_object, const char* fname, const char* worksheetName) {
 
   jobject wb = makeWorkbook();
   jobject ws = createExcelSheet(wb, worksheetName);
-  if(!writeSHEET_from_Vector(wb,ws,0,r_object,formats,true)) {
+  if(!writeSHEET_from_Vector(wb,ws,0,r_object,true)) {
     java_poi_env->DeleteLocalRef(ws);
     java_poi_env->DeleteLocalRef(wb);
     return false;
@@ -534,7 +527,7 @@ bool writeWB_from_Vector(SEXP r_object, const char* fname, const char* worksheet
 
 void writeAlongRow(jobject sheet, jobject style, SEXP r_object, int row_num, int start_col) {
   jobject row, cell;
-  
+
   row = java_poi_env->CallObjectMethod(sheet,createRow,row_num);
 
   for(int i = 0; i < length(r_object); i++, start_col++)  {
@@ -550,7 +543,7 @@ void writeAlongRow(jobject sheet, jobject style, SEXP r_object, int row_num, int
 
 void writeAlongRow(jobject sheet, jobject style, SEXP r_object, int index_start, int index_end, int row_num, int start_col) {
   jobject row, cell;
-  
+
   row = java_poi_env->CallObjectMethod(sheet,createRow,row_num);
 
   for(int i = index_start; i < index_end; i++, start_col++)  {
@@ -566,7 +559,7 @@ void writeAlongRow(jobject sheet, jobject style, SEXP r_object, int index_start,
 
 void writeAlongRow(jobject sheet, jobject style, const char* ch, int row_num, int start_col) {
   jobject row, cell;
-  
+
   row = java_poi_env->CallObjectMethod(sheet,createRow,row_num);
   cell = java_poi_env->CallObjectMethod(row,createCell,start_col);
   writeCell(cell, ch);
@@ -579,7 +572,7 @@ void writeAlongRow(jobject sheet, jobject style, const char* ch, int row_num, in
 
 void writeAlongRow(jobject sheet, jobject style, const vector<string>& svec, int row_num, int start_col) {
   jobject row, cell;
-  
+
   row = java_poi_env->CallObjectMethod(sheet,createRow,row_num);
 
   for(int i = 0; i < svec.size(); i++, start_col++)  {
@@ -598,8 +591,8 @@ void writeAlongCol(jobject sheet, jobject style, SEXP r_object, int col_num, int
   jobject row, cell;
 
   for(int i = 0; i < length(r_object); i++, start_row++)  {
-    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);  
-    
+    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);
+
     if(row==NULL) {
       row = java_poi_env->CallObjectMethod(sheet,createRow,start_row);
     }
@@ -619,8 +612,8 @@ void writeAlongCol(jobject sheet, jobject style, SEXP r_object, int index_start,
   jobject row, cell;
 
   for(int i = index_start; i < index_end; i++, start_row++)  {
-    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);  
-    
+    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);
+
     if(row==NULL) {
       row = java_poi_env->CallObjectMethod(sheet,createRow,start_row);
     }
@@ -640,8 +633,8 @@ void writeAlongCol(jobject sheet, jobject style, const vector<string>& svec, int
   jobject row, cell;
 
   for(int i = 0; i < svec.size(); i++, start_row++)  {
-    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);  
-    
+    row = java_poi_env->CallObjectMethod(sheet,getRow,start_row);
+
     if(row==NULL) {
       row = java_poi_env->CallObjectMethod(sheet,createRow,start_row);
     }
@@ -658,9 +651,9 @@ void writeAlongCol(jobject sheet, jobject style, const vector<string>& svec, int
 
 
 
-int writeSHEET_from_List(jobject wb, jobject sheet, int startrow, SEXP r_object, SEXP formats) {
+int writeSHEET_from_List(jobject wb, jobject sheet, int startrow, SEXP r_object) {
 
-  SEXP this_element, this_format;
+  SEXP this_element, formats, this_format;
   jobject row, cell, style;
 
   vector<string> nms = getNames(r_object);
@@ -675,12 +668,6 @@ int writeSHEET_from_List(jobject wb, jobject sheet, int startrow, SEXP r_object,
 
     this_element = VECTOR_ELT(r_object,i);
 
-    if(formats!=R_NilValue && isNewList(formats)) {
-      this_format =  VECTOR_ELT(formats, i%length(formats) );
-    } else {
-      this_format = formats;
-    }
-
     // write table name
     row = java_poi_env->CallObjectMethod(sheet,createRow,startrow++);
     cell = java_poi_env->CallObjectMethod(row,createCell,static_cast<short>(0));
@@ -693,23 +680,23 @@ int writeSHEET_from_List(jobject wb, jobject sheet, int startrow, SEXP r_object,
 
     // write sheet based on object type
     if(isTS(this_element)) {
-      startrow = writeSHEET_from_Rseries(wb,sheet,startrow,this_element,this_format,false);
+      startrow = writeSHEET_from_Rseries(wb,sheet,startrow,this_element,false);
     } else if(isFrame(this_element)) {
-      startrow = writeSHEET_from_Dataframe(wb,sheet,startrow,this_element,this_format, false);
+      startrow = writeSHEET_from_Dataframe(wb,sheet,startrow,this_element, false);
     } else if(isNewList(this_element)) {
-      startrow = writeSHEET_from_List(wb,sheet,startrow,this_element,this_format);
+      startrow = writeSHEET_from_List(wb,sheet,startrow,this_element);
     } else if(isMatrix(this_element)) {
-      startrow = writeSHEET_from_Matrix(wb,sheet,startrow,this_element,this_format, false);
+      startrow = writeSHEET_from_Matrix(wb,sheet,startrow,this_element, false);
     } else if(isVector(this_element)) {
-      startrow = writeSHEET_from_Vector(wb,sheet,startrow,this_element,this_format, false);
+      startrow = writeSHEET_from_Vector(wb,sheet,startrow,this_element, false);
     }
   }
 
   return startrow + 1;
 }
 
-int writeSHEET_from_Dataframe(jobject wb, jobject sheet, int startrow, SEXP r_object, SEXP formats, bool freeze_panes) {
-
+int writeSHEET_from_Dataframe(jobject wb, jobject sheet, int startrow, SEXP r_object, bool freeze_panes) {
+  SEXP formats;
   jobject style;
   short colNum = 0;
   short colNamesDefined = 0;
@@ -719,6 +706,8 @@ int writeSHEET_from_Dataframe(jobject wb, jobject sheet, int startrow, SEXP r_ob
   if(sheet==NULL || r_object==R_NilValue) {
     return 0;
   }
+
+  formats = getAttrib(r_object, install("formats"));
 
   vector<string> cnms  = colnames(r_object);
   vector<string> rnms  = rownames(r_object);
@@ -761,7 +750,7 @@ int writeSHEET_from_Dataframe(jobject wb, jobject sheet, int startrow, SEXP r_ob
     writeAlongCol(sheet, style, VECTOR_ELT(r_object,i), colNum++, startrow);
     java_poi_env->DeleteLocalRef(style);
   }
-  
+
   if(freeze_panes) {
     java_poi_env->CallVoidMethod(sheet,createFreezePane,rowNamesDefined,colNamesDefined);
   }
@@ -770,8 +759,8 @@ int writeSHEET_from_Dataframe(jobject wb, jobject sheet, int startrow, SEXP r_ob
 }
 
 
-int writeSHEET_from_Matrix(jobject wb, jobject sheet, int startrow, SEXP r_object, SEXP formats, bool freeze_panes) {
-
+int writeSHEET_from_Matrix(jobject wb, jobject sheet, int startrow, SEXP r_object, bool freeze_panes) {
+  SEXP formats;
   jobject style;
   short colNum = 0;
   short colNamesDefined = 0;
@@ -782,6 +771,8 @@ int writeSHEET_from_Matrix(jobject wb, jobject sheet, int startrow, SEXP r_objec
   if(sheet==NULL || r_object==R_NilValue) {
     return 0;
   }
+
+  formats = getAttrib(r_object, install("formats"));
 
   vector<string> cnms  = colnames(r_object);
   vector<string> rnms  = rownames(r_object);
@@ -833,8 +824,8 @@ int writeSHEET_from_Matrix(jobject wb, jobject sheet, int startrow, SEXP r_objec
 }
 
 
-int writeSHEET_from_Vector(jobject wb, jobject sheet, int startrow, SEXP r_object, SEXP formats, bool freeze_panes) {
-
+int writeSHEET_from_Vector(jobject wb, jobject sheet, int startrow, SEXP r_object, bool freeze_panes) {
+  SEXP formats;
   jobject style;
   short colNum = 0;
   short rowNamesDefined = 0;
@@ -842,6 +833,8 @@ int writeSHEET_from_Vector(jobject wb, jobject sheet, int startrow, SEXP r_objec
   if(sheet==NULL || r_object==R_NilValue) {
     return false;
   }
+
+  formats = getAttrib(r_object, install("formats"));
 
   vector<string> nms  = getNames(r_object);
   if(nms.size()) {
@@ -873,10 +866,10 @@ int writeSHEET_from_Vector(jobject wb, jobject sheet, int startrow, SEXP r_objec
   return startrow + length(r_object) + 1;
 }
 
-int writeSHEET_from_Rseries(jobject wb, jobject sheet, int startrow, SEXP r_object, SEXP formats, bool freeze_panes) {
+int writeSHEET_from_Rseries(jobject wb, jobject sheet, int startrow, SEXP r_object, bool freeze_panes) {
 
   jobject style;
-  SEXP dts;
+  SEXP dts, formats;
   short colNum = 0;
   short colNamesDefined = 0;
   int rowNamesDefined = 1;
@@ -887,6 +880,7 @@ int writeSHEET_from_Rseries(jobject wb, jobject sheet, int startrow, SEXP r_obje
     return 0;
   }
 
+  formats = getAttrib(r_object, install("formats"));
   vector<string> cnms  = colnames(r_object);
 
   if(cnms.size()) {
