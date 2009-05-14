@@ -115,7 +115,12 @@ int JNI_init() {
 
   // java args
   string cp1("-Djava.class.path=");
-  string cp2(getenv("CLASSPATH"));
+  const char* cp = getenv("CLASSPATH");
+  if(cp==NULL) {
+    std::cerr << "CLASSPATH not defined." << std::endl;
+    exit(1);
+  }
+  string cp2(cp);
 
   jArgs.push_back(cp1+cp2);
 
