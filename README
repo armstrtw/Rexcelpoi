@@ -1,6 +1,4 @@
 the following should be set in your environment:
 
 java should be on your path
-JAVA_HOME should be set
-LD_LIBRARY_PATH should contain the dir where libjvm.so resides
 CLASSPATH should be set to contain the poi class which can be found here: http://www.apache.org/dyn/closer.cgi/jakarta/poi/
