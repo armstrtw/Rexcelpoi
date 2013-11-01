@@ -340,7 +340,8 @@ bool isPOSIXct(const SEXP x) {
   }
 
   if(length(x_cls)==2) {
-    if(strcmp("POSIXt",CHAR(STRING_ELT(x_cls,0)))==0 && strcmp("POSIXct",CHAR(STRING_ELT(x_cls,1)))==0 ) {
+    if(strcmp("POSIXt",CHAR(STRING_ELT(x_cls,0)))==0 && strcmp("POSIXct",CHAR(STRING_ELT(x_cls,1)))==0 ||
+       strcmp("POSIXt",CHAR(STRING_ELT(x_cls,1)))==0 && strcmp("POSIXct",CHAR(STRING_ELT(x_cls,0)))==0 ) {
       UNPROTECT(1);
       return true;
     }
